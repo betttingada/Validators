@@ -1,1 +1,0 @@
-export const laceTwo:string = "fine tag art common divert model live ordinary steel annual praise dignity warfare corn focus letter carbon evolve crack reason tackle lecture century case"

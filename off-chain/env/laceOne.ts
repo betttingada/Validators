@@ -1,1 +1,0 @@
-export const laceOne : string = "diamond liquid start want woman midnight daring exact current author meadow sort unit receive school feel truck plastic erode item snow dream hedgehog dune"
