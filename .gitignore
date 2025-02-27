@@ -81,3 +81,40 @@ Session.vim
 .env.test.local
 .env.production.local
 
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+.Python
+.python-version
+.ruby-version
+.node-version
+
+# Python virtual environments
+virtualenv/
+.virtualenv/
+pipenv/
+.pipenv/
+poetry/
+.poetry/
+
+# More Node.js
+.cache/
+.yarn/
+.pnp.*
+
+# Ruby
+.bundle/
+vendor/bundle
+
+# Java/Maven/Gradle
+.gradle/
+build/
+target/
+.m2/
+
+# Other
+.direnv/
+.envrc
+.tox/
