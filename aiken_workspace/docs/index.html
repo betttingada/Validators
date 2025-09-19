@@ -7,8 +7,8 @@
     <meta name="theme-color" content="#eff1f5" media="(prefers-color-scheme: light)"/>
     <meta name="theme-color" content="#1e1e2e" media="(prefers-color-scheme: dark)"/>
     <link rel="icon" type="image/svg+xml" sizes="any" href="./favicon.svg"/>
-    <link rel="stylesheet" href="./css/index.css?v=1.1.6" type="text/css"/>
-    <link id="syntax-theme" rel="stylesheet" href="./css/atom-one-light.min.css?v=1.1.6"/>
+    <link rel="stylesheet" href="./css/index.css?v=1.1.19" type="text/css"/>
+    <link id="syntax-theme" rel="stylesheet" href="./css/atom-one-light.min.css?v=1.1.19"/>
   </head>
   <body class="prewrap-off theme-light drawer-closed">
     <script>
@@ -247,56 +247,19 @@
 	    
 	  
         
+	  
+	    
+	      <li data-indent="0"><a href="./validation.html">
+	      validation
+	      </a></li>
+	    
+	  
+        
         </ul>
       </nav>
 
       <main class="content">
         
-<h1>bead</h1>
-<p>Write validators in the <code>validators</code> folder, and supporting functions in the <code>lib</code> folder using <code>.ak</code> as a file extension.</p>
-<pre><code class="language-aiken">validator my_first_validator {
-  spend(_datum: Option&lt;Data&gt;, _redeemer: Data, _output_reference: Data, _context: Data) {
-    True
-  }
-}
-</code></pre>
-<h2>Building</h2>
-<pre><code class="language-sh">aiken build
-</code></pre>
-<h2>Configuring</h2>
-<p><strong>aiken.toml</strong></p>
-<pre><code class="language-toml">[config.default]
-network_id = 41
-</code></pre>
-<p>Or, alternatively, write conditional environment modules under <code>env</code>.</p>
-<h2>Testing</h2>
-<p>You can write tests in any module using the <code>test</code> keyword. For example:</p>
-<pre><code class="language-aiken">use config
-
-test foo() {
-  config.network_id + 1 == 42
-}
-</code></pre>
-<p>To run all tests, simply do:</p>
-<pre><code class="language-sh">aiken check
-</code></pre>
-<p>To run only tests matching the string <code>foo</code>, do:</p>
-<pre><code class="language-sh">aiken check -m foo
-</code></pre>
-<h2>Documentation</h2>
-<p>If you’re writing a library, you might want to generate an HTML documentation for it.</p>
-<p>Use:</p>
-<pre><code class="language-sh">aiken docs
-</code></pre>
-<h2>Resources</h2>
-<p>Find more on the <a href="https://aiken-lang.org">Aiken’s user manual</a>.</p>
-<p>aiken build –env preview
-aiken blueprint policy  -m bead.bead.mint
-aiken build –env preview<br />
-aiken blueprint convert  -m  bead.bead.mint &gt; ./compiled/bead.signed.plutus
-aiken blueprint convert  -m  bead.bet.mint &gt; ./compiled/bet.signed.plutus
-aiken blueprint convert  -m  bead.bet.spend &gt; ./compiled/betpot.signed.plutus<br />
-aiken blueprint convert  -m  bead.oracle.mint &gt; ./compiled/oracle.signed.plutus</p>
 
 
       </main>
@@ -374,8 +337,8 @@ aiken blueprint convert  -m  bead.oracle.mint &gt; ./compiled/oracle.signed.plut
       </defs>
     </svg>
 
-    <script src="./js/highlight.min.js?v=1.1.6"></script>
-    <script src="./js/highlightjs-aiken.js?v=1.1.6"></script>
+    <script src="./js/highlight.min.js?v=1.1.19"></script>
+    <script src="./js/highlightjs-aiken.js?v=1.1.19"></script>
     <script>
       document.querySelectorAll("pre code").forEach((elem) => {
         if (elem.className === "") {
@@ -417,10 +380,10 @@ aiken blueprint convert  -m  bead.oracle.mint &gt; ./compiled/oracle.signed.plut
     </script>
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
-    <script src="./js/lunr.min.js?v=1.1.6"></script>
-    <script src="./js/index.js?v=1733058372"></script>
+    <script src="./js/lunr.min.js?v=1.1.19"></script>
+    <script src="./js/index.js?v=1755198799"></script>
     <!-- Load the search index using JSONP to avoid CORS issues -->
-    <script src="./search-data.js?v=1733058372"></script>
+    <script src="./search-data.js?v=1755198799"></script>
     <script>
       void function() {
         if (typeof tippy !== "undefined") {

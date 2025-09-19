@@ -7,8 +7,8 @@
     <meta name="theme-color" content="#eff1f5" media="(prefers-color-scheme: light)"/>
     <meta name="theme-color" content="#1e1e2e" media="(prefers-color-scheme: dark)"/>
     <link rel="icon" type="image/svg+xml" sizes="any" href="./favicon.svg"/>
-    <link rel="stylesheet" href="./css/index.css?v=1.1.6" type="text/css"/>
-    <link id="syntax-theme" rel="stylesheet" href="./css/atom-one-light.min.css?v=1.1.6"/>
+    <link rel="stylesheet" href="./css/index.css?v=1.1.19" type="text/css"/>
+    <link id="syntax-theme" rel="stylesheet" href="./css/atom-one-light.min.css?v=1.1.19"/>
   </head>
   <body class="prewrap-off theme-light drawer-closed">
     <script>
@@ -196,6 +196,16 @@
 <ul>
   
     
+        <li><a href="#calculate_expected_bet_quantity">calculate_expected_bet_quantity</a></li>
+
+      
+  
+    
+        <li><a href="#calculate_payout">calculate_payout</a></li>
+
+      
+  
+    
         <li><a href="#datum_of">datum_of</a></li>
 
       
@@ -278,6 +288,14 @@
 	    
 	  
         
+	  
+	    
+	      <li data-indent="0"><a href="./validation.html">
+	      validation
+	      </a></li>
+	    
+	  
+        
         </ul>
       </nav>
 
@@ -286,6 +304,31 @@
 <h1 id="module-name" class="module-name">
   <a href="#module-name">bet</a>
 </h1>
+<p>BEAD Protocol - Betting Validator</p>
+<p>This validator manages the betting system for sports games, handling both betting token
+minting/burning and payout distribution. It implements complex rational arithmetic for
+precise payout calculations and integrates with oracle validators for game results.</p>
+<p>Key Features:</p>
+<ul>
+<li>Time-based betting windows (bet before game, claim after game)</li>
+<li>Rational arithmetic for precise payout calculations with floor rounding</li>
+<li>Oracle integration for verified game results</li>
+<li>BEAD token integration for betting fees</li>
+<li>Treasury signature validation for administrative actions</li>
+<li>Enhanced tracing for debugging complex payout logic</li>
+</ul>
+<p>Validator Parameters:</p>
+<ul>
+<li>gameId: Unique integer identifier for the specific game</li>
+<li>gameName: Human-readable game name (e.g., “Porto”)</li>
+<li>gameDate: POSIX timestamp when game completes and payouts become available</li>
+</ul>
+<p>Supported Actions:</p>
+<ol>
+<li>Mint: Create betting tokens during betting window (before gameDate)</li>
+<li>Spend: Claim winnings using betting tokens (after gameDate)</li>
+<li>Treasury: Administrative token burning with treasury signature</li>
+</ol>
 
 
 
@@ -301,12 +344,123 @@
   
       <div class="member">
         <div class="member-name">
-          <h2 id="datum_of"><pre class="hljs language-aiken">datum_of(output: Output) -&gt; Option&lt;Data&gt;</pre></h2>
+          <h2 id="calculate_expected_bet_quantity"><pre class="hljs language-aiken">calculate_expected_bet_quantity(paid_to_pot: Int, bead_qt: Int) -&gt; Int</pre></h2>
           
-      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bet.ak#L100-L105"></a>
+      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bet.ak#L299-L307"></a>
           
         </div>
-        <div class="rendered-markdown"></div>
+        <div class="rendered-markdown"><p>Calculate the expected bet quantity based on ADA paid and BEAD tokens</p>
+</div>
+      </div>
+    
+  
+  
+      <div class="member">
+        <div class="member-name">
+          <h2 id="calculate_payout"><pre class="hljs language-aiken">calculate_payout(bet_qt: Int, total_winnings: Int, total_ada: Int) -&gt; Int</pre></h2>
+          
+      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bet.ak#L382-L404"></a>
+          
+        </div>
+        <div class="rendered-markdown"><p>Calculate payout for winning bet</p>
+<p>This function implements the core payout calculation with specific rounding behavior.
+It uses rational arithmetic to ensure precise calculations and then applies floor
+rounding to determine the final payout amount.</p>
+<p>Parameters:</p>
+<ul>
+<li>bet_qt: The quantity of bet tokens being burned (negative value, e.g., -10000000)</li>
+<li>total_winnings: Total amount of winning bet tokens across all winners (positive, e.g., 17000000)</li>
+<li>total_ada: Total ADA available in the prize pool (positive, e.g., 32000000 lovelace)</li>
+</ul>
+<p>Formula: payout = floor((-bet_qt / total_winnings) × total_ada)</p>
+<p>Example calculation:</p>
+<ul>
+<li>bet_qt = -10000000 (Account A’s bet tokens, negative because burning)</li>
+<li>total_winnings = 17000000 (Account A: 10M + Account C: 7M tokens)</li>
+<li>total_ada = 32000000 (10 + 15 + 7 = 32 ADA in lovelace)</li>
+</ul>
+<p>Step 1: Create ratio of bet tokens to total winnings
+ratio = (-(-10000000)) / 17000000 = 10000000 / 17000000 = 0.588235294…</p>
+<p>Step 2: Multiply by total ADA available
+payout_exact = 0.588235294… × 32000000 = 18823529.411764705…</p>
+<p>Step 3: Apply floor rounding (CRITICAL FOR PREVENTING INSUFFICIENT FUNDS)
+payout_final = floor(18823529.411764705…) = 18823529 lovelace</p>
+<p>ROUNDING BEHAVIOR:
+The use of rational.floor() means ANY fractional part rounds DOWN to the lower integer.
+This prevents claiming more than available in the pot:</p>
+<ul>
+<li>18823529.1 → 18823529 (rounds down)</li>
+<li>18823529.9 → 18823529 (rounds down)</li>
+<li>18823529.0 → 18823529 (no change, already integer)</li>
+</ul>
+<p>OFF-CHAIN MATCHING:
+The off-chain code MUST use identical logic to avoid validation failures.
+JavaScript Math.floor() should match this behavior exactly.</p>
+<p>INSUFFICIENT FUNDS PREVENTION:
+Floor rounding ensures we never try to claim more than what’s available in the pot.
+Better to leave a few lovelaces in the pot than to have redemptions fail.
+Calculates precise payout using rational arithmetic with floor rounding</p>
+<p>Implements the core payout formula: (bet_tokens / total_winnings) × total_ada
+Uses rational arithmetic to prevent floating-point errors and applies floor
+rounding to ensure sequential redemptions don’t fail due to rounding accumulation.</p>
+<h2>Parameters</h2>
+<ul>
+<li><code>bet_qt</code>: Quantity of betting tokens being burned (negative value)</li>
+<li><code>total_winnings</code>: Total winning betting tokens for this result</li>
+<li><code>total_ada</code>: Total ADA available for distribution</li>
+</ul>
+<h2>Returns</h2>
+<ul>
+<li><code>Int</code>: Calculated payout amount in lovelaces (ADA)</li>
+</ul>
+<h2>Calculation Steps</h2>
+<ol>
+<li>Convert bet quantity to positive ratio component (-bet_qt / total_winnings)</li>
+<li>Create rational representation of total ADA pool</li>
+<li>Multiply ratios for proportional payout calculation</li>
+<li>Apply floor rounding to prevent over-payment</li>
+</ol>
+<h2>Floor Rounding Benefits</h2>
+<ul>
+<li>Prevents sequential redemption failures</li>
+<li>Ensures total payouts never exceed available ADA</li>
+<li>Maintains system integrity under high concurrent redemptions</li>
+</ul>
+<h2>Example</h2>
+<ul>
+<li>Bet: 100 tokens, Total Winnings: 500 tokens, Total ADA: 1000 ADA</li>
+<li>Calculation: (100/500) × 1000 = 200 ADA payout</li>
+</ul>
+</div>
+      </div>
+    
+  
+  
+      <div class="member">
+        <div class="member-name">
+          <h2 id="datum_of"><pre class="hljs language-aiken">datum_of(output: Output) -&gt; Option&lt;Data&gt;</pre></h2>
+          
+      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bet.ak#L425-L430"></a>
+          
+        </div>
+        <div class="rendered-markdown"><p>Extracts inline datum from transaction output</p>
+<p>Helper function to safely extract inline datums from UTxOs, commonly used
+for oracle data validation and result verification.</p>
+<h2>Parameters</h2>
+<ul>
+<li><code>output</code>: Transaction output that may contain an inline datum</li>
+</ul>
+<h2>Returns</h2>
+<ul>
+<li><code>Option&lt;Data&gt;</code>: Some(datum) if inline datum exists, None otherwise</li>
+</ul>
+<h2>Use Cases</h2>
+<ul>
+<li>Oracle result extraction</li>
+<li>Datum validation in multi-validator transactions</li>
+<li>Safe datum parsing with error handling</li>
+</ul>
+</div>
       </div>
     
   
@@ -315,10 +469,34 @@
         <div class="member-name">
           <h2 id="lessThanHaft"><pre class="hljs language-aiken">lessThanHaft(lovelaces: Int, bead: Int) -&gt; Bool</pre></h2>
           
-      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bet.ak#L107-L113"></a>
+      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bet.ak#L453-L472"></a>
           
         </div>
-        <div class="rendered-markdown"></div>
+        <div class="rendered-markdown"><p>BEAD token spam prevention validation (Half Test)</p>
+<p>Ensures sufficient ADA is provided relative to BEAD token quantities to prevent
+micro-betting spam attacks. Requires at least 2 ADA per BEAD token involved.</p>
+<h2>Parameters</h2>
+<ul>
+<li><code>lovelaces</code>: ADA amount in the transaction (in lovelaces)</li>
+<li><code>bead</code>: BEAD token quantity involved in the transaction</li>
+</ul>
+<h2>Returns</h2>
+<ul>
+<li><code>Bool</code>: True if ADA/BEAD ratio is acceptable, False if spam detected</li>
+</ul>
+<h2>Validation Rules</h2>
+<ul>
+<li>BEAD &gt; 0: Requires lovelaces/(bead × 1M) &gt;= 2 (minimum 2 ADA per BEAD)</li>
+<li>BEAD = 0: Allows any positive ADA amount (no BEAD tokens involved)</li>
+<li>BEAD &lt; 0: Prevents negative token exploits (should not occur in normal flow)</li>
+</ul>
+<h2>Spam Prevention</h2>
+<ul>
+<li>Prevents micro-transactions that could clog the network</li>
+<li>Ensures meaningful betting amounts relative to transaction fees</li>
+<li>Maintains economic viability of betting operations</li>
+</ul>
+</div>
       </div>
     
   
@@ -331,10 +509,12 @@
   gameResult: Int,
 ) -&gt; Bool</pre></h2>
           
-      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bet.ak#L129-L138"></a>
+      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bet.ak#L486-L493"></a>
           
         </div>
-        <div class="rendered-markdown"></div>
+        <div class="rendered-markdown"><p>Validates that the provided game result ByteArray matches the expected format
+of result concatenated with game name</p>
+</div>
       </div>
     
   
@@ -343,10 +523,11 @@
         <div class="member-name">
           <h2 id="getResultBA"><pre class="hljs language-aiken">getResultBA(gameNameBA: ByteArray, gameResult: Int) -&gt; ByteArray</pre></h2>
           
-      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bet.ak#L140-L145"></a>
+      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bet.ak#L496-L499"></a>
           
         </div>
-        <div class="rendered-markdown"></div>
+        <div class="rendered-markdown"><p>Generates the expected token name by concatenating the game result with the game name</p>
+</div>
       </div>
     
   
@@ -428,8 +609,8 @@
       </defs>
     </svg>
 
-    <script src="./js/highlight.min.js?v=1.1.6"></script>
-    <script src="./js/highlightjs-aiken.js?v=1.1.6"></script>
+    <script src="./js/highlight.min.js?v=1.1.19"></script>
+    <script src="./js/highlightjs-aiken.js?v=1.1.19"></script>
     <script>
       document.querySelectorAll("pre code").forEach((elem) => {
         if (elem.className === "") {
@@ -471,10 +652,10 @@
     </script>
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
-    <script src="./js/lunr.min.js?v=1.1.6"></script>
-    <script src="./js/index.js?v=1733058372"></script>
+    <script src="./js/lunr.min.js?v=1.1.19"></script>
+    <script src="./js/index.js?v=1755198799"></script>
     <!-- Load the search index using JSONP to avoid CORS issues -->
-    <script src="./search-data.js?v=1733058372"></script>
+    <script src="./search-data.js?v=1755198799"></script>
     <script>
       void function() {
         if (typeof tippy !== "undefined") {

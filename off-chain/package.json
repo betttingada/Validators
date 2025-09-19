@@ -5,14 +5,26 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "compile": "tsc"
+    "compile": "tsc",
+    "clean": "./cleanup-js.sh",
+    "build": "npm run clean && npm run compile",
+    "copy-to-frontend": "./copy-to-frontend.sh",
+    "copy-to-frontend:js": "node copy-to-frontend.js",
+    "deploy-frontend": "npm run build && npm run copy-to-frontend",
+    "docs": "typedoc --options typedoc.json",
+    "docs:html": "typedoc --options typedoc-html.json",
+    "docs:serve": "typedoc --options typedoc.json --watch",
+    "docs:clean": "rm -rf docs docs-html && npm run docs && npm run docs:html",
+    "docs:view": "open ./docs-html/index.html"
   },
   "author": "me",
   "license": "ISC",
   "dependencies": {
-    "@lucid-evolution/lucid": "^0.4.22"
+    "@evolution-sdk/lucid": "^2.0.1"
   },
   "devDependencies": {
-    "typescript": "^5.6.3"
+    "typedoc": "^0.28.10",
+    "typedoc-plugin-markdown": "^4.8.1",
+    "typescript": "^5.9.2"
   }
 }

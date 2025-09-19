@@ -1,0 +1,60 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "name": "BEAD Protocol Off-Chain Documentation",
+  "entryPoints": [
+    "./lib/bead.ts",
+    "./lib/bet.ts",
+    "./lib/oracle.ts",
+    "./lib/redeem.ts",
+    "./providers/IBlockchainProvider.ts",
+    "./providers/LucidProvider.ts",
+    "./utils/types.ts",
+    "./utils/cstypes.ts",
+    "./utils/utils.ts"
+  ],
+  "out": "./docs-html",
+  "theme": "default",
+  "readme": "./README.md",
+  "includeVersion": true,
+  "excludePrivate": false,
+  "excludeProtected": false,
+  "excludeExternals": true,
+  "excludeInternal": false,
+  "categoryOrder": [
+    "Core Functions",
+    "Types and Interfaces", 
+    "Providers",
+    "Utilities",
+    "Configuration"
+  ],
+  "sort": ["source-order"],
+  "validation": {
+    "notExported": false,
+    "invalidLink": true,
+    "notDocumented": false
+  },
+  "treatWarningsAsErrors": false,
+  "cleanOutputDir": true,
+  "sidebarLinks": {
+    "GitHub Repository": "https://github.com/cmorgado/Bead-Cardano",
+    "BEAD Protocol": "https://bead.fi"
+  },
+  "navigationLinks": {
+    "Home": "https://bead.fi",
+    "Documentation": "/docs"
+  },
+  "titleLink": "https://bead.fi",
+  "blockTags": [
+    "@param",
+    "@returns", 
+    "@throws",
+    "@example",
+    "@since",
+    "@see",
+    "@author",
+    "@version",
+    "@fileoverview",
+    "@note",
+    "@deprecated"
+  ]
+}

@@ -7,8 +7,8 @@
     <meta name="theme-color" content="#eff1f5" media="(prefers-color-scheme: light)"/>
     <meta name="theme-color" content="#1e1e2e" media="(prefers-color-scheme: dark)"/>
     <link rel="icon" type="image/svg+xml" sizes="any" href="./favicon.svg"/>
-    <link rel="stylesheet" href="./css/index.css?v=1.1.6" type="text/css"/>
-    <link id="syntax-theme" rel="stylesheet" href="./css/atom-one-light.min.css?v=1.1.6"/>
+    <link rel="stylesheet" href="./css/index.css?v=1.1.19" type="text/css"/>
+    <link id="syntax-theme" rel="stylesheet" href="./css/atom-one-light.min.css?v=1.1.19"/>
   </head>
   <body class="prewrap-off theme-light drawer-closed">
     <script>
@@ -300,6 +300,14 @@
 	    
 	  
         
+	  
+	    
+	      <li data-indent="0"><a href="./validation.html">
+	      validation
+	      </a></li>
+	    
+	  
+        
         </ul>
       </nav>
 
@@ -325,11 +333,48 @@
         </a>
       </h2>
       
-        <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bead.ak#L7-L9"></a>
+        <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bead.ak#L49-L51"></a>
       
     </div>
     <div class="custom-type-constructors">
-      <div class="rendered-markdown"></div>
+      <div class="rendered-markdown"><h1>BEAD Protocol - Token Minting Validator</h1>
+<p>This validator handles the minting of BEAD tokens with an integrated referral system.
+BEAD tokens are the core utility tokens in the BEAD protocol, used for betting,
+oracle operations, and referral rewards.</p>
+<p>Features:</p>
+<ul>
+<li>Controlled token minting with treasury authorization</li>
+<li>Integrated referral system with configurable reward ratios</li>
+<li>Treasury payment validation for each mint operation</li>
+<li>Proper token burning validation</li>
+</ul>
+<p>Architecture:</p>
+<ul>
+<li>Action-based redeemer system (mint=0, burn=1, other=2+)</li>
+<li>Referral rewards paid as additional BEAD tokens</li>
+<li>Treasury fees collected for each mint operation</li>
+<li>Uses shared validation library for common patterns</li>
+</ul>
+<p>Token Economics:</p>
+<ul>
+<li>Treasury receives payment for each mint operation</li>
+<li>Referrers receive bonus BEAD tokens as rewards</li>
+<li>Controlled supply through treasury authorization</li>
+</ul>
+<p>Example Usage:</p>
+<ul>
+<li>Mint 1000 BEAD with referrer: mint 1000 to user + bonus to referrer</li>
+<li>Burn operation: reduce total supply by specified amount</li>
+<li>Treasury operations: controlled by treasury signature
+BeadRedeemer type defines the action to be performed by the validator</li>
+</ul>
+<p>Actions:</p>
+<ul>
+<li>0: Mint BEAD tokens (with optional referral rewards)</li>
+<li>1: Burn BEAD tokens (reduce total supply)</li>
+<li>2+: Future actions (reserved for protocol upgrades)</li>
+</ul>
+</div>
       
       <h3>Constructors</h3>
       <ul class="constructor-list">
@@ -367,10 +412,36 @@
   assetName: AssetName,
 ) -&gt; Int</pre></h2>
           
-      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bead.ak#L68-L76"></a>
+      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bead.ak#L205-L219"></a>
           
         </div>
-        <div class="rendered-markdown"></div>
+        <div class="rendered-markdown"><p>Calculate the total BEAD tokens present in reference outputs for referral rewards</p>
+<p>This function examines all reference outputs to determine how many BEAD referral
+tokens are available for calculation purposes. It’s used to cap referral rewards
+based on the available referral token supply.</p>
+<p>Parameters:</p>
+<ul>
+<li>refs: List of reference outputs to examine</li>
+<li>policyId: The policy ID of the BEAD token</li>
+<li>assetName: The asset name for BEAD referral tokens</li>
+</ul>
+<p>Returns:</p>
+<ul>
+<li>Int: Total quantity of BEAD referral tokens found in references</li>
+</ul>
+<p>Logic:</p>
+<ol>
+<li>Extract token quantities from each reference output</li>
+<li>Sum all quantities to get total available referral tokens</li>
+<li>Return total for use in referral cap calculations</li>
+</ol>
+<p>Used For:</p>
+<ul>
+<li>Calculating maximum possible referral rewards</li>
+<li>Ensuring referral rewards don’t exceed available supply</li>
+<li>Transparent referral token accounting</li>
+</ul>
+</div>
       </div>
     
   
@@ -379,10 +450,32 @@
         <div class="member-name">
           <h2 id="maxReferral"><pre class="hljs language-aiken">maxReferral(ref: Int) -&gt; Int</pre></h2>
           
-      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bead.ak#L78-L84"></a>
+      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bead.ak#L243-L258"></a>
           
         </div>
-        <div class="rendered-markdown"></div>
+        <div class="rendered-markdown"><p>Apply maximum cap to referral rewards</p>
+<p>Ensures referral rewards don’t exceed the protocol’s maximum limit of 50 tokens.
+This prevents excessive referral rewards that could destabilize the token economy.</p>
+<p>Parameters:</p>
+<ul>
+<li>ref: The calculated referral amount before capping</li>
+</ul>
+<p>Returns:</p>
+<ul>
+<li>Int: The capped referral amount (maximum 50)</li>
+</ul>
+<p>Business Logic:</p>
+<ul>
+<li>Maximum referral reward: 50 BEAD tokens</li>
+<li>Prevents referral reward inflation</li>
+<li>Maintains sustainable token economics</li>
+<li>Protects against excessive referral claims</li>
+</ul>
+<p>Example:</p>
+<pre><code>maxReferral(25) -&gt; 25  // No capping needed
+maxReferral(75) -&gt; 50  // Capped to maximum
+</code></pre>
+</div>
       </div>
     
   
@@ -391,10 +484,37 @@
         <div class="member-name">
           <h2 id="verifyRatios"><pre class="hljs language-aiken">verifyRatios(treasuryAda: Int, referralAda: Int, ratio: Int) -&gt; Bool</pre></h2>
           
-      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bead.ak#L86-L93"></a>
+      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bead.ak#L287-L304"></a>
           
         </div>
-        <div class="rendered-markdown"></div>
+        <div class="rendered-markdown"><p>Verify that referral payment ratios are correct</p>
+<p>Validates that the referral payment amount matches the expected percentage
+of the total ADA payment (treasury + referral). This ensures the referral
+system maintains proper economic ratios.</p>
+<p>Parameters:</p>
+<ul>
+<li>treasuryAda: Amount of ADA paid to treasury</li>
+<li>referralAda: Amount of ADA paid to referrer</li>
+<li>ratio: Expected referral percentage (0-100)</li>
+</ul>
+<p>Returns:</p>
+<ul>
+<li>Bool: True if the referral ratio is correct, False otherwise</li>
+</ul>
+<p>Calculation:</p>
+<ol>
+<li>Calculate total ADA: treasury + referral</li>
+<li>Calculate expected referral: total * ratio / 100</li>
+<li>Verify expected equals actual referral payment</li>
+</ol>
+<p>Example:</p>
+<pre><code>verifyRatios(180_000_000, 20_000_000, 10) -&gt; True
+// 200M total * 10% = 20M referral (correct)
+
+verifyRatios(190_000_000, 10_000_000, 10) -&gt; False
+// 200M total * 10% = 20M, but only 10M paid (incorrect)
+</code></pre>
+</div>
       </div>
     
   
@@ -403,10 +523,36 @@
         <div class="member-name">
           <h2 id="calcBead"><pre class="hljs language-aiken">calcBead(input: Int) -&gt; Int</pre></h2>
           
-      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bead.ak#L95-L106"></a>
+      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bead.ak#L332-L349"></a>
           
         </div>
-        <div class="rendered-markdown"></div>
+        <div class="rendered-markdown"><p>Calculate BEAD tokens to mint based on ADA payment</p>
+<p>Converts ADA payment amounts to corresponding BEAD token quantities using
+predefined conversion rates. Supports both fixed-rate tiers and a fallback
+formula for custom amounts.</p>
+<p>Parameters:</p>
+<ul>
+<li>input: ADA amount in lovelace (1 ADA = 1,000,000 lovelace)</li>
+</ul>
+<p>Returns:</p>
+<ul>
+<li>Int: Number of BEAD tokens to mint</li>
+</ul>
+<p>Conversion Tiers:</p>
+<ul>
+<li>200 ADA (200M lovelace) -&gt; 1,000 BEAD</li>
+<li>400 ADA (400M lovelace) -&gt; 2,040 BEAD</li>
+<li>600 ADA (600M lovelace) -&gt; 3,090 BEAD</li>
+<li>800 ADA (800M lovelace) -&gt; 4,060 BEAD</li>
+<li>1,000 ADA (1B lovelace) -&gt; 5,250 BEAD</li>
+<li>2,000 ADA (2B lovelace) -&gt; 10,500 BEAD</li>
+<li>Other amounts: input * 5 / 100,000 (custom formula)</li>
+</ul>
+<p>Example:</p>
+<pre><code>calcBead(200_000_000) -&gt; 1000    // 200 ADA -&gt; 1000 BEAD
+calcBead(150_000_000) -&gt; 7500    // 150 ADA -&gt; 7500 BEAD (formula)
+</code></pre>
+</div>
       </div>
     
   
@@ -415,10 +561,42 @@
         <div class="member-name">
           <h2 id="calcBeadReferral"><pre class="hljs language-aiken">calcBeadReferral(input: Int) -&gt; Int</pre></h2>
           
-      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bead.ak#L108-L119"></a>
+      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bead.ak#L382-L399"></a>
           
         </div>
-        <div class="rendered-markdown"></div>
+        <div class="rendered-markdown"><p>Calculate BEAD referral tokens based on total ADA payment</p>
+<p>Determines the number of BEAD referral tokens to mint based on the total
+ADA payment (treasury + referral). Referral tokens are bonus rewards for
+successful referrals in the BEAD ecosystem.</p>
+<p>Parameters:</p>
+<ul>
+<li>input: Total ADA amount in lovelace (treasury + referral payments)</li>
+</ul>
+<p>Returns:</p>
+<ul>
+<li>Int: Number of BEAD referral tokens to mint</li>
+</ul>
+<p>Referral Reward Tiers:</p>
+<ul>
+<li>200 ADA total -&gt; 5 BEAD referral tokens</li>
+<li>400 ADA total -&gt; 10 BEAD referral tokens</li>
+<li>600 ADA total -&gt; 15 BEAD referral tokens</li>
+<li>800 ADA total -&gt; 20 BEAD referral tokens</li>
+<li>1,000 ADA total -&gt; 25 BEAD referral tokens</li>
+<li>2,000 ADA total -&gt; 50 BEAD referral tokens</li>
+<li>Other amounts -&gt; 0 (no referral reward for non-standard amounts)</li>
+</ul>
+<p>Business Logic:</p>
+<ul>
+<li>Referral rewards are only given for specific payment tiers</li>
+<li>Maximum referral reward is 50 tokens (enforced by maxReferral function)</li>
+<li>Non-standard amounts receive no referral rewards</li>
+</ul>
+<p>Example:</p>
+<pre><code>calcBeadReferral(200_000_000) -&gt; 5     // 200 ADA -&gt; 5 referral tokens
+calcBeadReferral(150_000_000) -&gt; 0     // Custom amount -&gt; no referral
+</code></pre>
+</div>
       </div>
     
   
@@ -427,7 +605,7 @@
         <div class="member-name">
           <h2 id="validatePayedAndMintedBead"><pre class="hljs language-aiken">validatePayedAndMintedBead(mintedBeadQt: Int, paiedToTreasury: Int) -&gt; Bool</pre></h2>
           
-      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bead.ak#L121-L127"></a>
+      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bead.ak#L401-L416"></a>
           
         </div>
         <div class="rendered-markdown"></div>
@@ -442,7 +620,7 @@
   paiedToTreasury: Int,
 ) -&gt; Bool</pre></h2>
           
-      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bead.ak#L129-L135"></a>
+      	    <a class="member-source" alt="view source" title="view source" target="_blank" href="https://github.com/betting/bead/blob/0.0.0/validators/bead.ak#L418-L433"></a>
           
         </div>
         <div class="rendered-markdown"></div>
@@ -527,8 +705,8 @@
       </defs>
     </svg>
 
-    <script src="./js/highlight.min.js?v=1.1.6"></script>
-    <script src="./js/highlightjs-aiken.js?v=1.1.6"></script>
+    <script src="./js/highlight.min.js?v=1.1.19"></script>
+    <script src="./js/highlightjs-aiken.js?v=1.1.19"></script>
     <script>
       document.querySelectorAll("pre code").forEach((elem) => {
         if (elem.className === "") {
@@ -570,10 +748,10 @@
     </script>
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
-    <script src="./js/lunr.min.js?v=1.1.6"></script>
-    <script src="./js/index.js?v=1733058372"></script>
+    <script src="./js/lunr.min.js?v=1.1.19"></script>
+    <script src="./js/index.js?v=1755198799"></script>
     <!-- Load the search index using JSONP to avoid CORS issues -->
-    <script src="./search-data.js?v=1733058372"></script>
+    <script src="./search-data.js?v=1755198799"></script>
     <script>
       void function() {
         if (typeof tippy !== "undefined") {
