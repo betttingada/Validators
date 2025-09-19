@@ -148,16 +148,26 @@ The protocol features a modern provider architecture that abstracts blockchain i
 - [Aiken](https://aiken-lang.org) v1.1.19+
 - [Deno](https://deno.land) for TypeScript execution
 - Node.js and npm/pnpm for off-chain development
+- **Environment Configuration**: See [Environment Setup](#environment-configuration) section
 
 ### Installation
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/cmorgado/Bead-Cardano.git
-   cd Bead-Cardano/Aiken/bead
+   git clone https://github.com/betttingada/Validators.git
+   cd Validators
    ```
 
-2. **Install off-chain dependencies**:
+2. **Set up environment configuration** (Critical - see [Environment Configuration](#environment-configuration)):
+   ```bash
+   # Create Aiken environment files
+   # Copy and customize aiken_workspace/env/*.ak files with your network settings
+   
+   # Create TypeScript environment files  
+   # Add your wallet seed phrases to off-chain/env/*.ts files
+   ```
+
+3. **Install off-chain dependencies**:
    ```bash
    cd off-chain
    npm install
@@ -165,13 +175,31 @@ The protocol features a modern provider architecture that abstracts blockchain i
    pnpm install
    ```
 
-3. **Verify Aiken installation**:
+4. **Verify Aiken installation**:
    ```bash
    cd aiken_workspace
    aiken --version
    ```
 
 ## 🔧 Development Workflow
+
+### Initial Environment Setup
+
+**⚠️ Critical First Step**: Before building contracts or running tests, you must configure the environment files. The contracts and off-chain code will not work without proper environment configuration.
+
+```bash
+# 1. Set up Aiken environment
+cd aiken_workspace/env/
+# Edit preview.ak, preprod.ak, default.ak with your treasury and policy IDs
+
+# 2. Set up TypeScript environment  
+cd ../../off-chain/env/
+# Create laceOne.ts, laceTreasury.ts, etc. with your wallet seed phrases
+
+# 3. Verify setup
+cd ../aiken_workspace
+aiken check  # Should pass without environment errors
+```
 
 ### Building Contracts
 
@@ -462,6 +490,107 @@ These policy IDs are essential for:
 - Asset identification across the Cardano network
 
 ### Environment Configuration
+
+#### **📁 Required Environment Setup**
+
+Both the Aiken workspace and off-chain TypeScript code require environment configuration files to be created manually. These files contain sensitive information and network-specific parameters that are not included in the repository for security reasons.
+
+#### **🏗️ Aiken Workspace Environment (`aiken_workspace/env/`)**
+
+The Aiken contracts reference environment modules that define network-specific constants. You need to ensure these files exist and contain the correct values for your target network:
+
+**Required Files:**
+- `env/default.ak` - Default/Mainnet configuration
+- `env/preview.ak` - Preview testnet configuration  
+- `env/preprod.ak` - Pre-production testnet configuration
+
+**Example `env/preview.ak` structure:**
+```aiken
+use aiken/crypto.{VerificationKeyHash}
+use aiken/primitive/string
+
+// Treasury public key hash for receiving fees
+pub const treasury: VerificationKeyHash =
+  #"d5434e727e2b5761e61e8aee4fbdfea3db9b5600a9d989eb7b7fa377"
+
+// Token names for this network
+pub const beadName: ByteArray = string.to_bytearray(@"BEAD PR")
+pub const beadReferralName: ByteArray = string.to_bytearray(@"BEADR PR")
+
+// Policy IDs (generated after first contract deployment)
+pub const beadPolicyId: ByteArray =
+  #"88f726eca4f971d876533177b7cd736779d318e528e12aa6942a20eb"
+pub const oraclePolicyId: ByteArray =
+  #"76ad8c0237016138f33bfd821ffbc3571eb98e6ea11622fd7f014d40"
+```
+
+**Configuration Steps:**
+1. **Create Environment Files**: Copy the structure above for each network you plan to use
+2. **Set Treasury Address**: Replace the treasury hash with your treasury wallet's payment key hash
+3. **Define Token Names**: Customize token names for each network (e.g., "BEAD PR" for Preview, "BEAD" for Mainnet)
+4. **Generate Policy IDs**: Initially set placeholder values, then update after first contract build:
+   ```bash
+   cd aiken_workspace
+   aiken build --env preview
+   aiken blueprint policy -m bead    # Copy this to beadPolicyId
+   aiken blueprint policy -m oracle  # Copy this to oraclePolicyId
+   ```
+
+#### **💻 Off-Chain Environment (`off-chain/env/`)**
+
+The TypeScript off-chain code requires wallet seed phrases and private keys for testing and operations. These files contain sensitive cryptographic material and must be created manually.
+
+**Required Files:**
+- `env/laceOne.ts` - Primary wallet seed phrase
+- `env/laceTwo.ts` - Secondary wallet seed phrase  
+- `env/laceTreasury.ts` - Treasury wallet seed phrase
+- `env/laceTree.ts` - Additional wallet for testing
+
+**Example File Structure:**
+```typescript
+// env/laceOne.ts
+export const laceOne: string = "your twenty-four word mnemonic seed phrase goes here for the primary wallet";
+
+// env/laceTreasury.ts  
+export const laceTreasury: string = "treasury wallet mnemonic seed phrase that matches the treasury hash in aiken env files";
+
+// env/laceTwo.ts
+export const laceTwo: string = "secondary wallet mnemonic for testing multiple user scenarios";
+```
+
+**Security Requirements:**
+- **Never commit these files to version control**
+- **Use test wallets only** - never use real funds
+- **Generate fresh mnemonics** for each environment
+- **Ensure treasury wallet** matches the treasury hash in Aiken env files
+
+**Wallet Generation:**
+```bash
+# Generate test wallets using Cardano CLI or online tools
+# For Preview/Preprod networks only - never use for Mainnet!
+
+# You can use tools like:
+# - Daedalus wallet (testnet mode)
+# - Eternl wallet (testnet)  
+# - Online mnemonic generators (for testing only)
+```
+
+#### **🔗 Environment Synchronization**
+
+**Critical**: The treasury configuration must be consistent between Aiken and TypeScript environments:
+
+1. **Generate Treasury Wallet**: Create a new wallet and extract the payment key hash
+2. **Update Aiken Config**: Set the `treasury` constant in all `env/*.ak` files
+3. **Update TypeScript Config**: Set the corresponding seed phrase in `env/laceTreasury.ts`
+4. **Verify Addresses Match**: Ensure the derived addresses are identical
+
+**Verification Script:**
+```typescript
+// Verify treasury address consistency
+import { laceTreasury } from './env/laceTreasury';
+// Use Lucid to derive address from seed phrase and compare with Aiken treasury hash
+```
+
 Each environment module provides network-specific settings:
 - Network ID and magic numbers
 - Treasury addresses and fee structures
@@ -680,6 +809,42 @@ npm run clean
 npm run compile
 ```
 
+#### **🚨 Environment Issues**
+
+**Missing Environment Files**
+```bash
+# Error: Module 'env' not found
+# Solution: Create required environment files
+cd aiken_workspace/env/
+# Ensure preview.ak, preprod.ak, default.ak exist with proper constants
+
+cd ../../off-chain/env/  
+# Ensure wallet seed phrase files exist: laceOne.ts, laceTreasury.ts, etc.
+```
+
+**Treasury Mismatch**
+```bash
+# Error: Transaction validation failed - treasury address mismatch
+# Solution: Verify treasury consistency between Aiken and TypeScript configs
+
+# 1. Check Aiken treasury hash
+grep -r "treasury" aiken_workspace/env/
+
+# 2. Verify TypeScript treasury seed phrase derives to same address
+# Use Lucid to derive address from laceTreasury.ts seed phrase
+```
+
+**Policy ID Mismatch**
+```bash
+# Error: Wrong policy ID in transaction
+# Solution: Update environment files with correct policy IDs after contract build
+
+cd aiken_workspace
+aiken build --env preview
+aiken blueprint policy -m bead    # Update beadPolicyId in env/preview.ak
+aiken blueprint policy -m oracle  # Update oraclePolicyId in env/preview.ak
+```
+
 **Provider Connection Issues**
 - Verify network environment settings in configuration
 - Check Blockfrost API key validity and network match
@@ -792,6 +957,9 @@ npm run docs:view   # Opens HTML docs in browser (macOS)
 git clone https://github.com/betttingada/Validators.git
 cd Validators
 
+# CRITICAL: Set up environment configuration first
+# See Environment Configuration section above for detailed instructions
+
 # Install Aiken dependencies
 cd aiken_workspace
 aiken packages install
@@ -800,8 +968,10 @@ aiken packages install
 cd ../off-chain
 npm install
 
-# Verify setup
+# Verify setup with environment files in place
+cd ../aiken_workspace
 aiken check                                        # Test contracts
+cd ../off-chain  
 deno run -A --unstable-sloppy-imports tests/bead.tests.ts  # Test off-chain
 ```
 
