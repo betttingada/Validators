@@ -1004,9 +1004,8 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 ## 🔗 Resources
 
 - **Aiken Documentation**: [https://aiken-lang.org](https://aiken-lang.org)
-- **Cardano Developer Portal**: [https://developers.cardano.org](https://developers.cardano.org)
-- **Lucid Evolution SDK**: [https://github.com/evolution-sdk/lucid](https://github.com/evolution-sdk/lucid)
-- **Project Repository**: [https://github.com/cmorgado/Bead-Cardano](https://github.com/cmorgado/Bead-Cardano)
+- **Evolution SDK (previously known as Lucid-Evolution)**: [https://no-witness-labs.github.io/evolution-sdk/docs/](https://no-witness-labs.github.io/evolution-sdk/docs/)
+
 
 ---
 
